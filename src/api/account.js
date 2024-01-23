@@ -5,7 +5,9 @@ import { getTRONPub, getTRONAddressByPub } from './TRONApi';
  *
  * @param {object} param
  * @param {string} param.provider
+ * @param {string} param.address
  * @param {string} [param.message]
+ * @returns {Promise<{address:{ NERVE: string, NULS: string, EVM: string, TRON: string }, pub: string}>}
  */
 export async function generateAddress({
   provider,
