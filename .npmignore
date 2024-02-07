@@ -5,3 +5,4 @@ babel.config.js
 rollup.config.mjs
 yarn.lock
 yarn-error.log
+umd-test/

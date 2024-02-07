@@ -938,20 +938,6 @@ async function getTransferTxData(tx) {
       locked: 0,
       nonce
     });
-
-    const mainAssetNonce = await getNonce(
-      from,
-      NERVEInfo.chainId,
-      NERVEInfo.assetId
-    );
-    inputs.push({
-      address: from,
-      assetsChainId: NERVEInfo.chainId,
-      assetsId: 1,
-      amount: '0',
-      locked: 0,
-      nonce: mainAssetNonce
-    });
   }
   outputs.push({
     address: to,

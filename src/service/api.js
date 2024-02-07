@@ -80,3 +80,28 @@ export async function calMinAmountOnSwapRemoveLiquidity(
   });
   return res.data || null;
 }
+
+export async function getAssetPrice(chainId, assetId, isForCalFee = false) {
+  const params = isForCalFee ? [chainId, assetId, 'FEE'] : [chainId, assetId];
+  const res = await post('getBestSymbolPrice', params, true);
+  if (!res.result) {
+    throw new Error('Get asset price error');
+  }
+  return res.result;
+}
+
+export async function getWithdrawalGasLimit() {
+  const res = await post('gasLimitOfHeterogeneousChains');
+  if (!res.result) {
+    throw new Error('Fail to get GasLimit');
+  }
+  return res.result;
+}
+
+export async function getCrossChainInfo() {
+  const res = await post('getCrossChainInfo');
+  if (!res.result) {
+    throw new Error('Fail to get cross chain info');
+  }
+  return res.result;
+}

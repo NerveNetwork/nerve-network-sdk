@@ -93,7 +93,7 @@ nerveswap.transfer.transfer(param)
  * @param {string} param.feeInfo.amount
  * @param {number} param.feeInfo.assetChainId
  * @param {number} param.feeInfo.assetId
- * @param {string} param.heterogeneousAddress
+ * @param {string} param.heterogeneousAddress // L1 target address
  * @param {number} param.heterogeneousChainId
  * @param {string} [param.remark]
  * @param {string} param.EVMAddress

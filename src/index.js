@@ -4,11 +4,11 @@ import { setBaseUrl } from './service';
 import { setIsBeta } from './utils/utils';
 import { generateAddress } from './api/account';
 
-import {
-  BitCoinCrossToNERVE,
-  checkBTCTxConfirmed,
-  calBTCTxFee
-} from './api/bitcoin';
+// import {
+//   BitCoinCrossToNERVE,
+//   checkBTCTxConfirmed,
+//   calBTCTxFee
+// } from './api/bitcoin';
 
 import {
   checkERC20Allowance,
@@ -36,6 +36,8 @@ import {
   sendFramWithdrawalTx
 } from './api/NERVEApi';
 
+import { getWithdrawalInfo } from './api/fee'
+
 import {
   getPairInfo,
   calAddLiquidity,
@@ -44,6 +46,8 @@ import {
   addLiquidity,
   removeLiquidity
 } from './api/LiquidityApi';
+
+setBaseUrl();
 
 export function testnet(psUrl) {
   setIsBeta(true);
@@ -61,11 +65,11 @@ export { getChainInfo } from './utils/utils';
 
 const nerve = {
   getAccount: generateAddress,
-  btc: {
-    calTxFee: calBTCTxFee,
-    crossIn: BitCoinCrossToNERVE,
-    checkTxConfirmed: checkBTCTxConfirmed
-  },
+  // btc: {
+  //   calTxFee: calBTCTxFee,
+  //   crossIn: BitCoinCrossToNERVE,
+  //   checkTxConfirmed: checkBTCTxConfirmed
+  // },
   evm: {
     checkAuth: checkERC20Allowance,
     approve: approveERC20,
@@ -74,6 +78,7 @@ const nerve = {
   transfer: {
     transfer: sendNERVETx,
     withdrawal: sendWithdrawalTx,
+    getWithdrawalInfo,
     addFee: sendAdditionFeeTx
   },
   staking: {
