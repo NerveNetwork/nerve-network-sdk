@@ -2,8 +2,18 @@ import nerve from 'nerve-sdk-js';
 const {
   BitcoinRechargeData
 } = require('nerve-sdk-js/lib/model/BitcoinRechargeData');
+import { isBeta } from '../utils/utils';
 
 nerve.bitcoin.initEccLibForWeb();
+
+export async function getBTCPub() {
+  return await window.unisat.getPublicKey();
+}
+
+export function getBTCAddressByPub(pub) {
+  const addressObj = nerve.bitcoin.getAddressByPub(pub, !isBeta);
+  return Object.values(addressObj);
+}
 
 /**
  * @param {object} param

@@ -1,6 +1,6 @@
 {
   "name": "nerveswap-sdk",
-  "version": "1.0.10",
+  "version": "1.0.19",
   "description": "nerve swap nerveswap nerveswap-sdk",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -34,7 +34,7 @@
     "axios": "^1.6.2",
     "bignumber.js": "^9.1.2",
     "ethers": "^5.7.2",
-    "nerve-sdk-js": "1.0.26",
+    "nerve-sdk-js": "^1.0.36",
     "tronweb": "^4.1.0"
   }
 }

@@ -38,7 +38,7 @@ class NerveSwap {
     this.isOthersForStableCoin = false; // NVT-> USDT
     this.isStableCoinSwap = false; // USDT ->USDTN / USDTN -> USDT
     this.stableCoins = {}; // {5-72: 5-102, 5-73: 5-102, ...}
-    this.staleSwapFeeAddress = '';
+    this.stableSwapFeeAddress = '';
     this.stablePairList = [];
     this.storedExactInPairInfo = {};
     this.cacheTime = null;
@@ -63,7 +63,7 @@ class NerveSwap {
   async getNerveFeeAddress() {
     const res = await getNerveFeeAddressApi();
     if (res) {
-      this.staleSwapFeeAddress = res.nerveFeeAddress;
+      this.stableSwapFeeAddress = res.nerveFeeAddress;
     }
   }
 
@@ -154,7 +154,8 @@ class NerveSwap {
         const { from, to, inAmount } = await this.checkSpecialSwapAsset(
           fromAssetKey,
           toAssetKey,
-          amount
+          amount,
+          direction
         );
         await this.storeSwapPairInfo(from, to, inAmount, refresh);
         const newPairsInfo = this.storedExactInPairInfo[from + '_' + to];
@@ -171,7 +172,24 @@ class NerveSwap {
           result = stableRouteResult;
         }
       }
-      const { amount: _amount, priceImpact, routes, fee } = result;
+      const { priceImpact, routes } = result;
+
+      let _amount = result.amount;
+      let fee = result.fee;
+
+      // check amount of different decimals
+      if (this.isStableCoinForOthers || this.isOthersForStableCoin) {
+        const res = this.handleSpecialSwapAmountRes(
+          fromAssetKey,
+          toAssetKey,
+          _amount,
+          fee,
+          direction
+        );
+        _amount = res.amount;
+        fee = res.fee;
+      }
+
       if (routes.length) {
         if (this.isStableCoinForOthers && this.useStableRoute) {
           routes.unshift(fromAssetKey);
@@ -240,9 +258,12 @@ class NerveSwap {
     // const stableN = this.stablePairList.find(v => v.lpToken === assetKey);
     // const fromAssetInfo = stableN.groupCoin[fromAssetKey];
     // const toAssetInfo = stableN.groupCoin[toAssetKey];
-    const decimals =
+
+    const fromDecimal =
       direction === 'from' ? fromAssetInfo.decimals : toAssetInfo.decimals;
-    const fromAmount = divisionDecimals(amount, decimals);
+    const targetDecimal =
+      direction === 'from' ? toAssetInfo.decimals : fromAssetInfo.decimals;
+    const fromAmount = divisionDecimals(amount, fromDecimal);
 
     if (this.stableCoins[fromAssetKey] !== toAssetKey) {
       // USDTN -> USDT, check pool balance
@@ -261,7 +282,7 @@ class NerveSwap {
       }
     }
     return {
-      amount: timesDecimals(fromAmount, toAssetInfo.decimals),
+      amount: timesDecimals(fromAmount, targetDecimal),
       priceImpact: '0',
       routes: [fromAssetKey, toAssetKey],
       fee: '0'
@@ -278,12 +299,18 @@ class NerveSwap {
     const stableN = this.stablePairList.find(v => v.lpToken === stableNKey);
     const fromAssetInfo = stableN.groupCoin[fromAssetKey];
     const toAssetInfo = stableN.groupCoin[toAssetKey];
-    const decimals =
+    const fromDecimal =
       direction === 'from' ? fromAssetInfo.decimals : toAssetInfo.decimals;
-    const fromAmount = divisionDecimals(amount, decimals);
+    const targetDecimal =
+      direction === 'from' ? toAssetInfo.decimals : fromAssetInfo.decimals;
+    const fromAmount = divisionDecimals(amount, fromDecimal);
 
-    const balance = divisionDecimals(toAssetInfo.balance, toAssetInfo.decimals);
-    if (balance - fromAmount < 0) {
+    const poolBalance = divisionDecimals(
+      toAssetInfo.balance,
+      toAssetInfo.decimals
+    );
+
+    if (poolBalance - fromAmount < 0) {
       // Insufficient pool balance
       return {
         amount: '0',
@@ -293,7 +320,7 @@ class NerveSwap {
       };
     }
     return {
-      amount: timesDecimals(fromAmount, toAssetInfo.decimals),
+      amount: timesDecimals(fromAmount, targetDecimal),
       priceImpact: '0',
       routes: [fromAssetKey, toAssetKey],
       fee: timesDecimals(
@@ -458,7 +485,7 @@ class NerveSwap {
   }
 
   // determine fromKey,toKey,inAmount by swap type. ex: NVT -> USDT、USDT -> NVT
-  async checkSpecialSwapAsset(fromAssetKey, toAssetKey, amount) {
+  async checkSpecialSwapAsset(fromAssetKey, toAssetKey, amount, direction) {
     let from = fromAssetKey,
       to = toAssetKey,
       inAmount = amount;
@@ -466,21 +493,64 @@ class NerveSwap {
     if (this.isStableCoinForOthers) {
       lpToken = this.stableCoins[fromAssetKey];
       const stableN = this.stablePairList.find(v => v.lpToken === lpToken);
-      const oldFromInfo = stableN.groupCoin[from];
+      const originalFromInfo = stableN.groupCoin[fromAssetKey];
       from = lpToken;
-      inAmount = timesDecimals(
-        divisionDecimals(inAmount, oldFromInfo.decimals),
-        stableN.lpTokenDecimals
-      );
+      if (direction === 'from') {
+        inAmount = timesDecimals(
+          divisionDecimals(inAmount, originalFromInfo.decimals),
+          stableN.lpTokenDecimals
+        );
+      }
     } else if (this.isOthersForStableCoin) {
       lpToken = this.stableCoins[toAssetKey];
+      const stableN = this.stablePairList.find(v => v.lpToken === lpToken);
+      const originalToInfo = stableN.groupCoin[toAssetKey];
       to = lpToken;
+      if (direction === 'to') {
+        inAmount = timesDecimals(
+          divisionDecimals(inAmount, originalToInfo.decimals),
+          stableN.lpTokenDecimals
+        );
+      }
     }
 
     return {
       from,
       to,
       inAmount
+    };
+  }
+
+  // handle different decimals of USDT
+  handleSpecialSwapAmountRes(fromAssetKey, toAssetKey, amount, fee, direction) {
+    let finalAmount = amount,
+      finalFee = fee;
+    if (this.isStableCoinForOthers) {
+      const lpToken = this.stableCoins[fromAssetKey];
+      const stableN = this.stablePairList.find(v => v.lpToken === lpToken);
+      const originalFromInfo = stableN.groupCoin[fromAssetKey];
+      finalFee = timesDecimals(
+        divisionDecimals(finalFee, stableN.lpTokenDecimals),
+        originalFromInfo.decimals
+      );
+      if (direction === 'to') {
+        finalAmount = timesDecimals(
+          divisionDecimals(finalAmount, stableN.lpTokenDecimals),
+          originalFromInfo.decimals
+        );
+      }
+    } else if (this.isOthersForStableCoin && direction === 'from') {
+      const lpToken = this.stableCoins[toAssetKey];
+      const stableN = this.stablePairList.find(v => v.lpToken === lpToken);
+      const originalToInfo = stableN.groupCoin[toAssetKey];
+      finalAmount = timesDecimals(
+        divisionDecimals(finalAmount, stableN.lpTokenDecimals),
+        originalToInfo.decimals
+      );
+    }
+    return {
+      amount: finalAmount,
+      fee: finalFee
     };
   }
 
@@ -659,10 +729,11 @@ class NerveSwap {
       stablePairAddress
     );
     if (index !== -1) {
-      const balance = info.balances[index];
-      if (Minus(amount, balance) > 0) {
-        throw new Error('Insufficient pool balance');
-      }
+      // consider different dicimals USDT
+      // const balance = info.balances[index];
+      // if (Minus(amount, balance) > 0) {
+      //   throw new Error('Insufficient pool balance');
+      // }
       const arr = new Array(info.coins.length).fill(1).map((v, i) => i);
       return arr.splice(index, 1).concat(arr);
     }
@@ -700,10 +771,10 @@ class NerveSwap {
       toAssetKey,
       stablePairAddress
     );
-    if (!this.staleSwapFeeAddress) {
+    if (!this.stableSwapFeeAddress) {
       await this.getNerveFeeAddress();
     }
-    const feeTo = this.staleSwapFeeAddress;
+    const feeTo = this.stableSwapFeeAddress;
     const fromAssetInfo = stableN.groupCoin[fromAssetKey];
     const feeAmount = fixNumber(
       Times(amount, stableN.feeRate).toFixed(),
@@ -739,7 +810,8 @@ class NerveSwap {
     const { amount: amountOut } = await this.getSwapInfo({
       fromAssetKey,
       toAssetKey,
-      amount
+      amount,
+      refresh: true
     });
     // const toAssetInfo = await getChainAssetInfo(toAssetKey);
     const amountOutMin = Times(amountOut, 1 - slippage / 100).toFixed(0, 1);

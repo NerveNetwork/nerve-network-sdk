@@ -2,10 +2,10 @@ import axios from 'axios';
 import { getChainInfo } from '../utils/utils';
 
 export const ps_mainnet = 'https://public.nerve.network';
-export const ps_testnet = 'http://beta.public.nerve.network';
+export const ps_testnet = 'https://beta.public.nerve.network';
 
 export const swap_mainnet = 'https://api.swap.nerve.network';
-export const swap_testnet = 'http://beta.api.swap.nerve.network';
+export const swap_testnet = 'https://beta.api.swap.nerve.network';
 
 let ps_baseUrl = '';
 let swap_baseUrl = '';

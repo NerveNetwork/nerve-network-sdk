@@ -93,7 +93,7 @@ export function getHetergenousChainConfig() {
       chainId: isBeta ? 201 : '',
       assetKey: isBeta ? '5-171' : '',
       mainAsset: 'BTC',
-      nativeId: '0x-10',
+      nativeId: '0x-a',
       decimals: 8,
       rpcUrl: RPC_URL.BTC
     },
@@ -466,6 +466,6 @@ export function getHetergenousChainConfig() {
 
 export function getHetergenousChainInfo(chainId) {
   const config = getHetergenousChainConfig();
-  const chain = Object.values(config).find(v => v.nativeId === chainId);
+  const chain = Object.values(config).find(v => v.chainId === chainId);
   return chain;
 }

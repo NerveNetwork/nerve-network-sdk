@@ -1,6 +1,8 @@
 import { getNPub, getNAddressByPub } from './NERVEApi';
 import { getEVMPub, getEVMAddressByPub } from './EVMApi';
 import { getTRONPub, getTRONAddressByPub } from './TRONApi';
+import { getBTCPub, getBTCAddressByPub } from './bitcoin';
+
 /**
  *
  * @param {object} param
@@ -15,20 +17,27 @@ export async function generateAddress({
   message = 'Generate Multi-chain Address'
 }) {
   let pub;
-  if (provider === 'tronWeb') {
-    pub = await getTRONPub();
+  if (provider === 'unisat') {
+    pub = await getBTCPub();
+  } else if (provider === 'tronWeb') {
+    pub = await getTRONPub(message);
   } else if (address.startsWith('0x')) {
     pub = await getEVMPub(provider, message);
   } else {
     pub = await getNPub(address);
   }
 
+  return getAccountByPub(pub);
+}
+
+export function getAccountByPub(pub) {
   const NERVE = getNAddressByPub(pub, false);
   const NULS = getNAddressByPub(pub, true);
   const EVM = getEVMAddressByPub(pub);
   const TRON = getTRONAddressByPub(pub);
+  const BTC = getBTCAddressByPub(pub);
   return {
-    address: { NERVE, NULS, EVM, TRON },
+    address: { NERVE, NULS, EVM, TRON, BTC },
     pub
   };
 }

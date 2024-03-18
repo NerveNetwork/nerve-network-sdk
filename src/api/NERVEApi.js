@@ -953,24 +953,34 @@ async function getCrossTxData(tx) {
   const { inputs, outputs } = await getTransferTxData(tx);
   const { NERVE, NULS } = getChainInfo();
 
-  let isNULS = false;
-  const crossFee = timesDecimals(0.01, 8);
-  for (let input of inputs) {
-    if (
-      input.assetsChainId === NULS.chainId &&
-      input.assetsId === NULS.assetId
-    ) {
-      isNULS = true;
-      input.amount = Plus(input.amount, crossFee).toFixed();
+  const crossFee = timesDecimals(0.01, 8); // cross fee 0.01 NVT + 0.01 NULS
+
+  const input = inputs[0]
+  if (
+    input.assetsChainId === NERVE.chainId &&
+    input.assetsId === NERVE.assetId
+  ) {
+    input.amount = Plus(input.amount, crossFee).toFixed();
+  } else {
+    const nonce = await getNonce(tx.from, NERVE.chainId, NERVE.assetId);
+    if (!nonce) {
+      throw new Error('Fail to get nonce');
     }
-    if (
-      input.assetsChainId === NERVE.chainId &&
-      input.assetsId === NERVE.assetId
-    ) {
-      input.amount = Plus(input.amount, crossFee).toFixed();
-    }
+    inputs.push({
+      address: tx.from,
+      assetsChainId: NERVE.chainId,
+      assetsId: NERVE.assetId,
+      amount: crossFee,
+      locked: 0,
+      nonce: nonce
+    });
   }
-  if (!isNULS) {
+  if (
+    input.assetsChainId === NULS.chainId &&
+    input.assetsId === NULS.assetId
+  ) {
+    input.amount = Plus(input.amount, crossFee).toFixed();
+  } else {
     const nonce = await getNonce(tx.from, NULS.chainId, NULS.assetId);
     if (!nonce) {
       throw new Error('Fail to get nonce');
@@ -1469,7 +1479,7 @@ export async function sendTx(
 }
 
 export async function sendTxWithUnSignedHex(provider, hex, pub, signAddress) {
-  const isNULSLedger = checkIsNULSLedger();
+  const isNULSLedger = checkIsNULSLedger(provider);
   let signedHex;
   if (isNULSLedger) {
     signedHex = await window.nabox.signNULSTransaction({ txHex: hex });

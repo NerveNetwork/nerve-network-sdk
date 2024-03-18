@@ -2,19 +2,26 @@ import NerveSdk from 'nerve-sdk-js';
 import NerveSwap from './api/SwapApi';
 import { setBaseUrl } from './service';
 import { setIsBeta } from './utils/utils';
-import { generateAddress } from './api/account';
+import { generateAddress, getAccountByPub } from './api/account';
 
-// import {
-//   BitCoinCrossToNERVE,
-//   checkBTCTxConfirmed,
-//   calBTCTxFee
-// } from './api/bitcoin';
+import {
+  BitCoinCrossToNERVE,
+  checkBTCTxConfirmed,
+  calBTCTxFee,
+  getBTCAddressByPub
+} from './api/bitcoin';
 
 import {
   checkERC20Allowance,
   approveERC20,
   EVMCrossToNERVE
 } from './api/EVMApi';
+
+import {
+  checkTRC20Allowance,
+  approveTRC20,
+  TRONCrossToNERVE
+} from './api/TRONApi';
 
 import {
   sendNERVETx,
@@ -36,7 +43,7 @@ import {
   sendFramWithdrawalTx
 } from './api/NERVEApi';
 
-import { getWithdrawalInfo } from './api/fee'
+import { getWithdrawalInfo } from './api/fee';
 
 import {
   getPairInfo,
@@ -65,15 +72,22 @@ export { getChainInfo } from './utils/utils';
 
 const nerve = {
   getAccount: generateAddress,
-  // btc: {
-  //   calTxFee: calBTCTxFee,
-  //   crossIn: BitCoinCrossToNERVE,
-  //   checkTxConfirmed: checkBTCTxConfirmed
-  // },
+  getAccountByPub,
+  btc: {
+    getAddress: getBTCAddressByPub,
+    calTxFee: calBTCTxFee,
+    crossIn: BitCoinCrossToNERVE,
+    checkTxConfirmed: checkBTCTxConfirmed
+  },
   evm: {
     checkAuth: checkERC20Allowance,
     approve: approveERC20,
     crossIn: EVMCrossToNERVE
+  },
+  tron: {
+    checkAuth: checkTRC20Allowance,
+    approve: approveTRC20,
+    crossIn: TRONCrossToNERVE
   },
   transfer: {
     transfer: sendNERVETx,

@@ -41,31 +41,31 @@ const config = defineConfig([
       })
     ]
   },
-  {
-    input: './src/index.js',
-    output: [
-      {
-        dir: 'dist/umd',
-        format: 'umd',
-        name: 'nerveswap',
-      }
-    ],
-    plugins: [
-      nodeResolve({ preferBuiltins: true, mainFields: ['browser'] }),
-      commonjs(),
-      babel({
-        /* babelHelpers: 'runtime',
-        include: 'node_modules/**' */
-        // exclude: 'node_modules/**'
-      }),
-      nodePolyfills(),
-      wasm(),
-      json(),
-      // globals(),
-      // builtins(),
-      terser()
-    ]
-  }
+  // {
+  //   input: './src/index.js',
+  //   output: [
+  //     {
+  //       dir: 'dist/umd',
+  //       format: 'umd',
+  //       name: 'nerveswap',
+  //     }
+  //   ],
+  //   plugins: [
+  //     nodeResolve({ preferBuiltins: true, mainFields: ['browser'] }),
+  //     commonjs(),
+  //     babel({
+  //       /* babelHelpers: 'runtime',
+  //       include: 'node_modules/**' */
+  //       // exclude: 'node_modules/**'
+  //     }),
+  //     nodePolyfills(),
+  //     wasm(),
+  //     json(),
+  //     // globals({ global: true }),
+  //     // builtins(),
+  //     terser()
+  //   ]
+  // }
 ])
 
 /* export default {

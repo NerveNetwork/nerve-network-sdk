@@ -75,6 +75,13 @@ export function getTRONAddressByPub(pub) {
   );
 }
 
+/**
+ * @param {object} param
+ * @param {string} param.address
+ * @param {string} param.multySignContract
+ * @param {number} param.tokenContract
+ * @returns {Promise<boolean}>}
+ */
 export async function checkTRC20Allowance({
   address,
   tokenContract,
@@ -87,6 +94,12 @@ export async function checkTRC20Allowance({
   return Minus(baseAllowance, allowance.toString()) >= 0;
 }
 
+/**
+ * @param {object} param
+ * @param {string} param.multySignContract
+ * @param {number} param.tokenContract
+ * @returns {Promise<{hash: string}}>}
+ */
 export async function approveTRC20({ tokenContract, multySignContract }) {
   const tronWeb = window.tronWeb;
   if (
@@ -114,17 +127,23 @@ function validAddress(address) {
   return window.tronWeb.isAddress(address);
 }
 
+/**
+ * @param {object} param
+ * @param {string} param.to nerve address
+ * @param {string} param.amount
+ * @param {string} param.multySignContract
+ * @param {number} param.tokenContract
+ * @returns {Promise<{hash: string}}>}
+ */
 export async function TRONCrossToNERVE({
   to,
   amount,
-  tokenAmount = '0',
-  mainAssetAmount = '0',
   multySignContract,
   tokenContract
 }) {
   if (
     !validAddress(multySignContract) ||
-    (tokenContract && !this.validAddress(tokenContract))
+    (tokenContract && !validAddress(tokenContract))
   ) {
     throw new Error('Invalid address');
   }

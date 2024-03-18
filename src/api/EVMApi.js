@@ -68,7 +68,7 @@ export async function checkERC20Allowance({
   const allowancePromise = contract.allowance(address, multySignContract);
   return allowancePromise
     .then(allowance => {
-      console.log(allowance, arguments, '-=-=-=-=');
+      // console.log(allowance, arguments, '-=-=-=-=');
       // const baseAllowance = '39600000000000000000000000000';
       const needAllowance = amount
         ? BigNumber.from(amount)
@@ -76,7 +76,7 @@ export async function checkERC20Allowance({
       return allowance.sub(needAllowance).lt('0');
     })
     .catch(e => {
-      console.log(e, 3333);
+      // console.log(e, 3333);
       return true;
     });
 }
@@ -120,7 +120,7 @@ export async function approveERC20({
     data: data
   };
   const KlaytnNativeId = getKlaytnNativeId();
-  if (_provider._web3Provider?.chainId === KlaytnNativeId) {
+  if (_provider.provider?.chainId === KlaytnNativeId) {
     // Klaytn set default gas
     txData.gasPrice = '0x3a35294400';
   }
@@ -191,7 +191,7 @@ export async function EVMCrossToNERVE({
     txData.gasLimit = gasLimit;
   }
   const KlaytnNativeId = getKlaytnNativeId();
-  if (_provider._web3Provider?.chainId === KlaytnNativeId) {
+  if (_provider.provider?.chainId === KlaytnNativeId) {
     // Klaytn set default gas
     txData.gasPrice = '0x3a35294400';
   }
@@ -209,6 +209,10 @@ function validateAddress(address) {
 }
 
 async function validateTx(provider, tx) {
+  const isShardeum = getShardeumNativeId() === provider.provider?.chainId;
+  if (isShardeum) {
+    return;
+  }
   return await provider.call(tx).then(result => {
     const reason = ethers.utils.toUtf8String('0x' + result.substr(138));
     if (reason) {
@@ -220,6 +224,10 @@ async function validateTx(provider, tx) {
 async function sendTransaction(provider, tx) {
   const wallet = provider.getSigner();
   return await wallet.sendTransaction(tx);
+}
+
+function getShardeumNativeId() {
+  return isBeta ? '0x1f92' : '';
 }
 
 function getKlaytnNativeId() {

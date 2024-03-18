@@ -7,6 +7,10 @@ import {
 } from '../utils/heterogeneousChainConfig'
 import { getAssetPrice, getWithdrawalGasLimit } from '../service/api'
 
+/**
+ * @param {number} chainId  the hetergenous chainId
+ * @returns
+ */
 export async function getWithdrawalInfo(chainId) {
   const configs = getHetergenousChainConfig()
   const heterogeneousChain = getHetergenousChainInfo(chainId)
@@ -14,35 +18,43 @@ export async function getWithdrawalInfo(chainId) {
     throw new Error('Invalid chain')
   }
 
-  const ethereumChain = configs.Ethereum
-  const withdrawalProvider = new ethers.providers.JsonRpcProvider(
-    heterogeneousChain.rpcUrl
-  )
-  const ethereumProvider = new ethers.providers.JsonRpcProvider(
-    ethereumChain.rpcUrl
-  )
+  const { assetKey, chainName, rpcUrl } = heterogeneousChain
+
+  const [L1ChainId, L1AssetId] = assetKey.split('-')
+  const mainAssetUSD = await getAssetPrice(+L1ChainId, +L1AssetId, false)
+
   const NerveInfo = getChainInfo().NERVE
-  const [L1ChainId, L1AssetId] = heterogeneousChain.assetKey.split('-')
-
-  const gasLimit = await getGasLimit(heterogeneousChain.chainId)
-
   // use NVT for fee
-  const feeUSD = await getAssetPrice(NerveInfo.chainId, NerveInfo.assetId, true)
+  const feeUSD = await getAssetPrice(NerveInfo.chainId, NerveInfo.assetId, true) // only fee asset need be true
   const feeDecimals = 8
-  const mainAssetUSD = await getAssetPrice(+L1ChainId, +L1AssetId, true)
 
-  const gasPrice = await withdrawalProvider.getGasPrice()
-  const gasLimit_big = BigNumber.from(gasLimit)
+  const gasLimit = await getGasLimit(chainId)
 
-  const ethGasPrice = await ethereumProvider.getGasPrice()
-  const extraL1FeeBig = sdkApi.getL1Fee(heterogeneousChain.chainId, ethGasPrice)
-  const totalL1Fee = gasLimit_big.mul(gasPrice).add(extraL1FeeBig)
+
+  let totalL1Fee
+  if (chainName === 'TRON') {
+    totalL1Fee = gasLimit;
+  } else {
+    const ethereumChain = configs.Ethereum
+    const withdrawalProvider = new ethers.providers.JsonRpcProvider(rpcUrl)
+    const ethereumProvider = new ethers.providers.JsonRpcProvider(
+      ethereumChain.rpcUrl
+    )
+
+    const gasPrice = await withdrawalProvider.getGasPrice()
+    const gasLimit_big = BigNumber.from(gasLimit)
+
+    const ethGasPrice = await ethereumProvider.getGasPrice()
+    const extraL1FeeBig = sdkApi.getL1Fee(chainId, ethGasPrice)
+    totalL1Fee = gasLimit_big.mul(gasPrice).add(extraL1FeeBig)
+  }
   const feeUSDBig = ethers.utils.parseUnits(feeUSD.toString(), 18)
   const mainAssetUSDBig = ethers.utils.parseUnits(mainAssetUSD.toString(), 18)
+  const chainDecimals = chainName === 'TRON' ? 6 : 18
   let result = mainAssetUSDBig
     .mul(totalL1Fee)
     .mul(ethers.utils.parseUnits('1', feeDecimals))
-    .div(ethers.utils.parseUnits('1', 18))
+    .div(ethers.utils.parseUnits('1', chainDecimals))
     .div(feeUSDBig)
   // use Math.ceil to handle fee
   const numberStr = ethers.utils.formatUnits(result, feeDecimals)
@@ -55,7 +67,7 @@ export async function getWithdrawalInfo(chainId) {
       assetChainId: NerveInfo.chainId,
       assetId: NerveInfo.assetId
     },
-    heterogeneousChainId: heterogeneousChain.chainId
+    heterogeneousChainId: chainId
   }
 }
 
