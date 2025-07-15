@@ -1,13 +1,13 @@
-import nerve from 'nerve-sdk-js';
-import Signature from 'elliptic/lib/elliptic/ec/signature';
-import { getAssetBalance, broadcastHex } from '../service/api.js';
+import nerve from 'nerve-sdk-js'
+import Signature from 'elliptic/lib/elliptic/ec/signature'
+import { getAssetBalance, broadcastHex } from '../service/api.js'
 import {
   Plus,
   getChainInfo,
   htmlEncode,
   timesDecimals,
   Minus
-} from '../utils/utils';
+} from '../utils/utils'
 
 const nerveConfig = {
   5: {
@@ -22,7 +22,7 @@ const nerveConfig = {
     pushFeeAddress: 'NERVEepb6BiuhyRh4Q9mcwyQd44pfz4AofM2h5',
     pushFeeScale: 6
   }
-};
+}
 
 export async function getNPub(address) {
   if (!window?.nabox?.selectedAddress) {
@@ -42,19 +42,25 @@ export function getNAddressByPub(pub, isNULS = false) {
 }
 
 function checkIsNULSLedger(provider) {
-  const _provider = window[provider];
-  return _provider?.isNabox && _provider?.isNULSLedger;
+  const _provider = getWebProvider(provider)
+  return _provider?.isNabox && _provider?.isNULSLedger
 }
 
 export function checkProvider(provider) {
-  if (!window[provider]) {
-    throw new Error(`${provider} not found`);
+  const _provider = getWebProvider(provider)
+  if (!_provider) {
+    throw new Error(`Provider not found`)
   }
+}
+
+export function getWebProvider(provider) {
+  const _provider = typeof provider === 'string' ? window[provider] : provider
+  return _provider
 }
 
 /**
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.to
  * @param {number} param.assetChainId
@@ -78,20 +84,20 @@ export async function sendNERVETx({
   EVMAddress,
   pub
 }) {
-  checkProvider(provider);
+  checkProvider(provider)
   const { inputs, outputs } = await getTxData(type, {
     from,
     to,
     assetChainId,
     assetId,
     amount
-  });
-  return sendTx(provider, type, inputs, outputs, remark, {}, pub, EVMAddress);
+  })
+  return sendTx(provider, type, inputs, outputs, remark, {}, pub, EVMAddress)
 }
 
 /**
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {number} param.assetChainId
  * @param {number} param.assetId
@@ -120,19 +126,19 @@ export async function sendWithdrawalTx({
   EVMAddress,
   pub
 }) {
-  const type = 43;
-  checkProvider(provider);
+  const type = 43
+  checkProvider(provider)
   const { inputs, outputs } = await getTxData(type, {
     from,
     assetChainId,
     assetId,
     amount,
     feeInfo
-  });
+  })
   const txData = {
     heterogeneousAddress,
     heterogeneousChainId
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -142,12 +148,12 @@ export async function sendWithdrawalTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {number} param.assetChainId
  * @param {number} param.assetId
@@ -171,14 +177,14 @@ export async function sendJoinStakingTx({
   EVMAddress,
   pub
 }) {
-  const type = 5;
-  checkProvider(provider);
+  const type = 5
+  checkProvider(provider)
   const { inputs, outputs } = await getTxData(type, {
     from,
     assetChainId,
     assetId,
     amount
-  });
+  })
   const txData = {
     address: from,
     deposit: amount,
@@ -186,7 +192,7 @@ export async function sendJoinStakingTx({
     assetsId: assetId,
     depositType,
     timeType
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -196,12 +202,12 @@ export async function sendJoinStakingTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {number} param.assetChainId
  * @param {number} param.assetId
@@ -223,15 +229,15 @@ export async function sendWithdrawalStakingTx({
   EVMAddress,
   pub
 }) {
-  const type = 6;
-  checkProvider(provider);
+  const type = 6
+  checkProvider(provider)
   const { inputs, outputs } = await getTxData(type, {
     from,
     assetChainId,
     assetId,
     amount,
     nonce: agentHash.substring(agentHash.length - 16)
-  });
+  })
   const txData = {
     address: from,
     agentHash,
@@ -240,7 +246,7 @@ export async function sendWithdrawalStakingTx({
     assetsId: assetId,
     depositType: 0,
     timeType: 0
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -250,12 +256,12 @@ export async function sendWithdrawalStakingTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {object[]} param.stakingList
  * @param {number} param.stakingList[].assetChainId
@@ -275,17 +281,17 @@ export async function sendBatchQuitStakingTx({
   EVMAddress,
   pub
 }) {
-  const type = 32;
-  checkProvider(provider);
+  const type = 32
+  checkProvider(provider)
   const { inputs, outputs } = await getTxData(type, {
     from,
     stakingList
-  });
-  const txHashs = stakingList.map(v => v.txHash);
+  })
+  const txHashs = stakingList.map(v => v.txHash)
   const txData = {
     address: from,
     agentHash: txHashs
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -295,12 +301,12 @@ export async function sendBatchQuitStakingTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {object[]} param.stakingList
  * @param {number} param.stakingList[].assetChainId
@@ -324,14 +330,14 @@ export async function sendBatchJoinStakingTx({
   EVMAddress,
   pub
 }) {
-  const type = 33;
-  checkProvider(provider);
+  const type = 33
+  checkProvider(provider)
 
   const { inputs, outputs, totalAmount } = await getTxData(type, {
     from,
     stakingList
-  });
-  const txHashs = stakingList.map(v => v.txHash);
+  })
+  const txHashs = stakingList.map(v => v.txHash)
   const txData = {
     deposit: totalAmount,
     address: from,
@@ -340,7 +346,7 @@ export async function sendBatchJoinStakingTx({
     depositType: depositType,
     timeType: timeType,
     agentHash: txHashs
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -350,13 +356,13 @@ export async function sendBatchJoinStakingTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @description create node
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.amount
  * @param {string} param.packingAddress
@@ -376,19 +382,19 @@ export async function sendCreateNodeTx({
   EVMAddress,
   pub
 }) {
-  const type = 4;
-  checkProvider(provider);
+  const type = 4
+  checkProvider(provider)
 
   const { inputs, outputs } = await getTxData(type, {
     from,
     amount
-  });
+  })
   const txData = {
     agentAddress: from,
     packingAddress,
     rewardAddress,
     deposit: amount
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -398,13 +404,13 @@ export async function sendCreateNodeTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @description add node deposit
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.amount
  * @param {string} param.agentHash
@@ -422,18 +428,18 @@ export async function sendAddDepositTx({
   EVMAddress,
   pub
 }) {
-  const type = 28;
-  checkProvider(provider);
+  const type = 28
+  checkProvider(provider)
 
   const { inputs, outputs } = await getTxData(type, {
     from,
     amount
-  });
+  })
   const txData = {
     address: from,
     agentHash,
     amount
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -443,13 +449,13 @@ export async function sendAddDepositTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @description reduce node deposit
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.amount
  * @param {object[]} param.reduceList
@@ -471,19 +477,19 @@ export async function sendQuitDepositTx({
   EVMAddress,
   pub
 }) {
-  const type = 29;
-  checkProvider(provider);
+  const type = 29
+  checkProvider(provider)
 
   const { inputs, outputs } = await getTxData(type, {
     from,
     amount,
     reduceList
-  });
+  })
   const txData = {
     address: from,
     agentHash,
     amount
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -493,13 +499,13 @@ export async function sendQuitDepositTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @description stop node
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.amount
  * @param {object[]} param.reduceList reduce nonc list
@@ -521,19 +527,19 @@ export async function sendStopNodeTx({
   EVMAddress,
   pub
 }) {
-  const type = 9;
-  checkProvider(provider);
+  const type = 9
+  checkProvider(provider)
 
   const { inputs, outputs } = await getTxData(type, {
     from,
     amount,
     reduceList
-  });
+  })
   const txData = {
     address: from,
     agentHash,
     amount
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -543,13 +549,13 @@ export async function sendStopNodeTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @description addtion withdrawal fee
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.amount
  * @param {number} param.assetChainId
@@ -558,6 +564,7 @@ export async function sendStopNodeTx({
  * @param {string} [param.remark]
  * @param {string} param.EVMAddress
  * @param {string} param.pub
+ * @param {boolean} param.BTCSpeedUp
  * @returns {Promise<{hash: string} | {error: {code: number, message: string}}>}
  */
 export async function sendAdditionFeeTx({
@@ -569,20 +576,24 @@ export async function sendAdditionFeeTx({
   txHash,
   remark = '',
   EVMAddress,
-  pub
+  pub,
+  BTCSpeedUp
 }) {
-  const type = 56;
-  checkProvider(provider);
+  const type = 56
+  checkProvider(provider)
 
   const { inputs, outputs } = await getTxData(type, {
     from,
     amount,
     assetChainId,
     assetId
-  });
+  })
   const txData = {
     txHash
-  };
+  }
+  if (BTCSpeedUp) {
+    txData.extend = '020000'
+  }
   return sendTx(
     provider,
     type,
@@ -592,13 +603,13 @@ export async function sendAdditionFeeTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @description push create trading order
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.payAmount
  * @param {string} param.payAssetKey
@@ -624,20 +635,20 @@ export async function sendCreateTradingOrderTx({
   EVMAddress,
   pub
 }) {
-  const type = 229;
-  checkProvider(provider);
+  const type = 229
+  checkProvider(provider)
 
-  const assetInfo = payAssetKey.split('-');
-  const assetChainId = +assetInfo[0];
-  const assetId = +assetInfo[1];
+  const assetInfo = payAssetKey.split('-')
+  const assetChainId = +assetInfo[0]
+  const assetId = +assetInfo[1]
   const { inputs, outputs } = await getTxData(type, {
     from,
     amount: payAmount,
     assetChainId,
     assetId
-  });
-  const { chainId: NERVEChainId } = getChainInfo().NERVE;
-  const { pushFeeAddress, pushFeeScale } = nerveConfig[NERVEChainId];
+  })
+  const { chainId: NERVEChainId } = getChainInfo().NERVE
+  const { pushFeeAddress, pushFeeScale } = nerveConfig[NERVEChainId]
   const txData = {
     address: from,
     tradingHash,
@@ -648,7 +659,7 @@ export async function sendCreateTradingOrderTx({
     price,
     feeAddress: pushFeeAddress,
     feeScale: pushFeeScale
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -658,13 +669,13 @@ export async function sendCreateTradingOrderTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @description push create trading order
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.orderHash
  * @param {string} [param.remark]
@@ -680,15 +691,15 @@ export async function sendRevokeTradingOrderTx({
   EVMAddress,
   pub
 }) {
-  const type = 230;
-  checkProvider(provider);
+  const type = 230
+  checkProvider(provider)
   const { inputs, outputs } = await getTxData(type, {
     from
-  });
+  })
   const txData = {
     address: from,
     orderHash
-  };
+  }
   return sendTx(
     provider,
     type,
@@ -698,13 +709,13 @@ export async function sendRevokeTradingOrderTx({
     txData,
     pub,
     EVMAddress
-  );
+  )
 }
 
 /**
  * @description create Farm
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.stakeAssetKey
  * @param {string} param.rewardAssetKey
@@ -734,9 +745,9 @@ export async function sendCreateFarmTx({
   EVMAddress,
   pub
 }) {
-  const { chainId: NERVEChainId, prefix } = getChainInfo().NERVE;
-  const stakeAsset = stakeAssetKey.split('-');
-  const rewardAsset = rewardAssetKey.split('-');
+  const { chainId: NERVEChainId, prefix } = getChainInfo().NERVE
+  const stakeAsset = stakeAssetKey.split('-')
+  const rewardAsset = rewardAssetKey.split('-')
   const tx = await nerve.swap.farmCreate(
     from,
     nerve.swap.token(+stakeAsset[0], +stakeAsset[1]),
@@ -750,14 +761,14 @@ export async function sendCreateFarmTx({
     modifiable,
     withdrawLockTime,
     remark
-  );
-  return await sendTxWithUnSignedHex(provider, tx.hex, pub, EVMAddress);
+  )
+  return await sendTxWithUnSignedHex(provider, tx.hex, pub, EVMAddress)
 }
 
 /**
  * @description Farm stake
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.amount
  * @param {numbrt} param.assetChainId
@@ -779,7 +790,7 @@ export async function sendFramStakeTx({
   EVMAddress,
   pub
 }) {
-  const { chainId, prefix } = getChainInfo().NERVE;
+  const { chainId, prefix } = getChainInfo().NERVE
   const tx = await nerve.swap.farmStake(
     from,
     nerve.swap.token(+assetChainId, +assetId),
@@ -788,14 +799,14 @@ export async function sendFramStakeTx({
     amount,
     farmHash,
     remark
-  );
-  return await sendTxWithUnSignedHex(provider, tx.hex, pub, EVMAddress);
+  )
+  return await sendTxWithUnSignedHex(provider, tx.hex, pub, EVMAddress)
 }
 
 /**
  * @description Farm claim
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {numbrt} param.assetChainId
  * @param {numbrt} param.assetId
@@ -815,7 +826,7 @@ export async function sendFramClaimTx({
   EVMAddress,
   pub
 }) {
-  const { chainId, prefix } = getChainInfo().NERVE;
+  const { chainId, prefix } = getChainInfo().NERVE
   const tx = await nerve.swap.farmStake(
     from,
     nerve.swap.token(+assetChainId, +assetId),
@@ -824,14 +835,14 @@ export async function sendFramClaimTx({
     '0',
     farmHash,
     remark
-  );
-  return await sendTxWithUnSignedHex(provider, tx.hex, pub, EVMAddress);
+  )
+  return await sendTxWithUnSignedHex(provider, tx.hex, pub, EVMAddress)
 }
 
 /**
  * @description Farm withdrawal
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.from
  * @param {string} param.amount
  * @param {numbrt} param.assetChainId
@@ -859,64 +870,64 @@ export async function sendFramWithdrawalTx({
     amount,
     farmHash,
     remark
-  );
-  return await sendTxWithUnSignedHex(provider, tx.hex, pub, EVMAddress);
+  )
+  return await sendTxWithUnSignedHex(provider, tx.hex, pub, EVMAddress)
 }
 
 function getTxData(type, tx) {
   if (type === 2) {
     // genetal
-    return getTransferTxData(tx);
+    return getTransferTxData(tx)
   } else if (type === 10) {
     // cross to nuls
-    return getCrossTxData(tx);
+    return getCrossTxData(tx)
   } else if (type === 43) {
     // withdrawal to L1
-    return getWithdrawalTxData(tx);
+    return getWithdrawalTxData(tx)
   } else if (type == 5) {
     // join staking
-    return getJoinStakingTxData(tx);
+    return getJoinStakingTxData(tx)
   } else if (type === 6) {
     // withdrawal staking
-    return getQuitStakingTxData(tx);
+    return getQuitStakingTxData(tx)
   } else if (type === 32) {
     // batch quit staking
-    return getBatchQuitTxData(tx);
+    return getBatchQuitTxData(tx)
   } else if (type === 33) {
     // merge staking / batch change staking period
-    return getBatchJoinTxData(tx);
+    return getBatchJoinTxData(tx)
   } else if (type === 4) {
     // create node
-    return getCreateNodeTxData(tx);
+    return getCreateNodeTxData(tx)
   } else if (type === 28) {
     // add deposit
-    return getAddDepositTxData(tx);
+    return getAddDepositTxData(tx)
   } else if (type === 29) {
     // quit deposit
-    return getQuitDepositTxData(tx);
+    return getQuitDepositTxData(tx)
   } else if (type === 9) {
     // stop node
-    return getQuitDepositTxData(tx, true);
+    return getQuitDepositTxData(tx, true)
   } else if (type === 56) {
     // add withdrawal fee
-    return getAdditionFeeTxData(tx);
+    return getAdditionFeeTxData(tx)
   } else if (type === 229) {
     // trading order
-    return getTradingOrderTxData(tx);
+    return getTradingOrderTxData(tx)
   } else if (type === 230) {
     // revoke order
-    return getRevokeOrderTxData(tx);
+    return getRevokeOrderTxData(tx)
   }
 }
 
 async function getTransferTxData(tx) {
-  const { from, to, assetChainId, assetId, amount } = tx;
+  const { from, to, assetChainId, assetId, amount } = tx
   const inputs = [],
-    outputs = [];
-  const NERVEInfo = getChainInfo().NERVE;
-  const nonce = await getNonce(from, assetChainId, assetId);
+    outputs = []
+  const NERVEInfo = getChainInfo().NERVE
+  const nonce = await getNonce(from, assetChainId, assetId)
   if (!nonce) {
-    throw new Error('Fail to get nonce');
+    throw new Error('Fail to get nonce')
   }
   if (assetChainId === NERVEInfo.chainId && assetId === NERVEInfo.assetId) {
     // transfer nvt, no fee cost
@@ -928,7 +939,7 @@ async function getTransferTxData(tx) {
       amount,
       locked: 0,
       nonce
-    });
+    })
   } else {
     inputs.push({
       address: from,
@@ -937,7 +948,7 @@ async function getTransferTxData(tx) {
       amount,
       locked: 0,
       nonce
-    });
+    })
   }
   outputs.push({
     address: to,
@@ -945,26 +956,26 @@ async function getTransferTxData(tx) {
     assetsId: assetId,
     amount,
     lockTime: 0
-  });
-  return { inputs, outputs };
+  })
+  return { inputs, outputs }
 }
 
 async function getCrossTxData(tx) {
-  const { inputs, outputs } = await getTransferTxData(tx);
-  const { NERVE, NULS } = getChainInfo();
+  const { inputs, outputs } = await getTransferTxData(tx)
+  const { NERVE, NULS } = getChainInfo()
 
-  const crossFee = timesDecimals(0.01, 8); // cross fee 0.01 NVT + 0.01 NULS
+  const crossFee = timesDecimals(0.01, 8) // cross fee 0.01 NVT + 0.01 NULS
 
   const input = inputs[0]
   if (
     input.assetsChainId === NERVE.chainId &&
     input.assetsId === NERVE.assetId
   ) {
-    input.amount = Plus(input.amount, crossFee).toFixed();
+    input.amount = Plus(input.amount, crossFee).toFixed()
   } else {
-    const nonce = await getNonce(tx.from, NERVE.chainId, NERVE.assetId);
+    const nonce = await getNonce(tx.from, NERVE.chainId, NERVE.assetId)
     if (!nonce) {
-      throw new Error('Fail to get nonce');
+      throw new Error('Fail to get nonce')
     }
     inputs.push({
       address: tx.from,
@@ -973,17 +984,14 @@ async function getCrossTxData(tx) {
       amount: crossFee,
       locked: 0,
       nonce: nonce
-    });
+    })
   }
-  if (
-    input.assetsChainId === NULS.chainId &&
-    input.assetsId === NULS.assetId
-  ) {
-    input.amount = Plus(input.amount, crossFee).toFixed();
+  if (input.assetsChainId === NULS.chainId && input.assetsId === NULS.assetId) {
+    input.amount = Plus(input.amount, crossFee).toFixed()
   } else {
-    const nonce = await getNonce(tx.from, NULS.chainId, NULS.assetId);
+    const nonce = await getNonce(tx.from, NULS.chainId, NULS.assetId)
     if (!nonce) {
-      throw new Error('Fail to get nonce');
+      throw new Error('Fail to get nonce')
     }
     inputs.push({
       address: tx.from,
@@ -992,25 +1000,25 @@ async function getCrossTxData(tx) {
       amount: crossFee,
       locked: 0,
       nonce: nonce
-    });
+    })
   }
-  return { inputs, outputs };
+  return { inputs, outputs }
 }
 async function getWithdrawalTxData(tx) {
-  const { from, assetChainId, assetId, amount, feeInfo } = tx;
+  const { from, assetChainId, assetId, amount, feeInfo } = tx
 
   const {
     amount: feeAmount,
     assetChainId: feeChainId,
     assetId: feeAssetId
-  } = feeInfo;
+  } = feeInfo
 
-  const nonce = await getNonce(from, assetChainId, assetId);
+  const nonce = await getNonce(from, assetChainId, assetId)
 
-  let inputs = [];
+  let inputs = []
   if (feeChainId === assetChainId && feeAssetId === assetId) {
     // withdrawal asset = fee asset
-    const newAmount = Plus(amount, feeAmount).toFixed();
+    const newAmount = Plus(amount, feeAmount).toFixed()
     inputs.push({
       address: from,
       amount: newAmount,
@@ -1018,9 +1026,9 @@ async function getWithdrawalTxData(tx) {
       assetsId: assetId,
       nonce,
       locked: 0
-    });
+    })
   } else {
-    const feeAssetNonce = await getNonce(from, feeChainId, feeAssetId);
+    const feeAssetNonce = await getNonce(from, feeChainId, feeAssetId)
     inputs = [
       {
         address: from,
@@ -1038,10 +1046,10 @@ async function getWithdrawalTxData(tx) {
         nonce: feeAssetNonce,
         locked: 0
       }
-    ];
+    ]
   }
-  const { chainId: NERVEChainId } = getChainInfo().NERVE;
-  const { feeAddress, blockHoleAddress } = nerveConfig[NERVEChainId];
+  const { chainId: NERVEChainId } = getChainInfo().NERVE
+  const { feeAddress, blockHoleAddress } = nerveConfig[NERVEChainId]
   let outputs = [
     {
       address: blockHoleAddress,
@@ -1057,13 +1065,13 @@ async function getWithdrawalTxData(tx) {
       assetsId: feeAssetId,
       locked: 0
     }
-  ];
-  return { inputs, outputs };
+  ]
+  return { inputs, outputs }
 }
 
 async function getJoinStakingTxData(tx) {
-  const { from, assetChainId, assetId, amount } = tx;
-  const nonce = await getNonce(from, assetChainId, assetId);
+  const { from, assetChainId, assetId, amount } = tx
+  const nonce = await getNonce(from, assetChainId, assetId)
   const inputs = [
     {
       address: from,
@@ -1073,7 +1081,7 @@ async function getJoinStakingTxData(tx) {
       locked: 0,
       nonce
     }
-  ];
+  ]
   const outputs = [
     {
       address: from,
@@ -1082,16 +1090,16 @@ async function getJoinStakingTxData(tx) {
       amount,
       lockTime: -1
     }
-  ];
-  return { inputs, outputs };
+  ]
+  return { inputs, outputs }
 }
 
 async function getQuitStakingTxData(tx) {
-  const { from, assetChainId, assetId, amount, nonce } = tx;
-  const inputs = [];
-  const outputs = [];
-  const NERVEInfo = getChainInfo().NERVE;
-  const { chainId: NERVEChainId, assetId: NERVEAssetId } = NERVEInfo;
+  const { from, assetChainId, assetId, amount, nonce } = tx
+  const inputs = []
+  const outputs = []
+  const NERVEInfo = getChainInfo().NERVE
+  const { chainId: NERVEChainId, assetId: NERVEAssetId } = NERVEInfo
   if (assetChainId !== NERVEChainId || assetId !== NERVEAssetId) {
     // asset is not NVT
     inputs.push({
@@ -1101,20 +1109,20 @@ async function getQuitStakingTxData(tx) {
       amount,
       locked: -1,
       nonce // The last 16 bits of TxHash
-    });
+    })
     outputs.push({
       address: from,
       assetsChainId: assetChainId,
       assetsId: assetId,
       amount,
       lockTime: 0
-    });
+    })
   } else {
     // asset is NVT, lock 7days
-    const sevenDays = new Date().valueOf() + 3600000 * 24 * 7;
+    const sevenDays = new Date().valueOf() + 3600000 * 24 * 7
     const lockTime = Number(
       sevenDays.toString().substr(0, sevenDays.toString().length - 3)
-    );
+    )
     inputs.push({
       address: from,
       assetsChainId: assetChainId,
@@ -1122,31 +1130,31 @@ async function getQuitStakingTxData(tx) {
       amount,
       locked: -1,
       nonce
-    });
+    })
     outputs.push({
       address: from,
       assetsChainId: assetChainId,
       assetsId: assetId,
       amount,
       lockTime
-    });
+    })
   }
 
-  return { inputs, outputs };
+  return { inputs, outputs }
 }
 
 async function getBatchQuitTxData(tx) {
-  const { from, stakingList } = tx;
-  const inputs = [];
-  const outputs = [];
-  const sevenDays = new Date().valueOf() + 3600000 * 24 * 7; // lock 7 days
+  const { from, stakingList } = tx
+  const inputs = []
+  const outputs = []
+  const sevenDays = new Date().valueOf() + 3600000 * 24 * 7 // lock 7 days
   const lockTime = Number(
     sevenDays.toString().substr(0, sevenDays.toString().length - 3)
-  );
+  )
   const symbolList = [],
-    outs = [];
-  const NERVEInfo = getChainInfo().NERVE;
-  const { chainId: NERVEChainId, assetId: NERVEAssetId } = NERVEInfo;
+    outs = []
+  const NERVEInfo = getChainInfo().NERVE
+  const { chainId: NERVEChainId, assetId: NERVEAssetId } = NERVEInfo
   stakingList.map(async v => {
     inputs.push({
       address: from,
@@ -1155,11 +1163,11 @@ async function getBatchQuitTxData(tx) {
       amount: Plus(0, v.amount).toFixed(),
       locked: -1,
       nonce: v.txHash.substring(v.txHash.length - 16)
-    });
-    const isNvt = NERVEChainId === v.assetChainId && NERVEAssetId === v.assetId;
-    const id = v.assetChainId + '-' + v.assetId;
+    })
+    const isNvt = NERVEChainId === v.assetChainId && NERVEAssetId === v.assetId
+    const id = v.assetChainId + '-' + v.assetId
     if (symbolList.indexOf(id) === -1) {
-      symbolList.push(id);
+      symbolList.push(id)
       outs.push({
         isNvt: isNvt,
         id: id,
@@ -1168,16 +1176,16 @@ async function getBatchQuitTxData(tx) {
         assetId: v.assetId,
         amount: Plus(0, v.amount).toFixed(),
         lockTime: isNvt ? lockTime : 0
-      });
+      })
     } else {
       outs.map(out => {
         if (out.id === id) {
-          out.amount = Plus(out.amount, v.amount).toFixed();
+          out.amount = Plus(out.amount, v.amount).toFixed()
         }
-      });
+      })
     }
-  });
-  const hasNvt = outs.filter(v => v.isNvt).length;
+  })
+  const hasNvt = outs.filter(v => v.isNvt).length
   if (hasNvt) {
     outs.map(item => {
       outputs.push({
@@ -1188,10 +1196,10 @@ async function getBatchQuitTxData(tx) {
           ? Minus(item.amount, 100000).toString()
           : item.amount, // A handling fee of 0.001 is required
         lockTime: item.lockTime
-      });
-    });
+      })
+    })
   } else {
-    const nonce = await getNonce(from, NERVEChainId, NERVEAssetId);
+    const nonce = await getNonce(from, NERVEChainId, NERVEAssetId)
     // this is required
     inputs.push({
       address: from,
@@ -1200,7 +1208,7 @@ async function getBatchQuitTxData(tx) {
       amount: 0,
       locked: 0,
       nonce
-    });
+    })
     outs.map(item => {
       outputs.push({
         address: item.address,
@@ -1208,23 +1216,23 @@ async function getBatchQuitTxData(tx) {
         assetsId: item.assetId,
         amount: item.amount,
         lockTime: item.lockTime
-      });
-    });
+      })
+    })
   }
-  return { inputs, outputs };
+  return { inputs, outputs }
 }
 
 async function getBatchJoinTxData(tx) {
-  const { from, stakingList } = tx;
-  const assetChainId = stakingList[0].assetChainId;
-  const assetId = stakingList[0].assetId;
-  const inputs = [];
-  const outputs = [];
-  const NERVEInfo = getChainInfo().NERVE;
-  const { chainId: NERVEChainId, assetId: NERVEAssetId } = NERVEInfo;
-  let totalAmount = '0';
+  const { from, stakingList } = tx
+  const assetChainId = stakingList[0].assetChainId
+  const assetId = stakingList[0].assetId
+  const inputs = []
+  const outputs = []
+  const NERVEInfo = getChainInfo().NERVE
+  const { chainId: NERVEChainId, assetId: NERVEAssetId } = NERVEInfo
+  let totalAmount = '0'
   stakingList.map(v => {
-    totalAmount = Plus(totalAmount, v.amount).toFixed();
+    totalAmount = Plus(totalAmount, v.amount).toFixed()
     inputs.push({
       address: from,
       assetsChainId: assetChainId,
@@ -1232,11 +1240,11 @@ async function getBatchJoinTxData(tx) {
       amount: v.amount,
       locked: -1,
       nonce: v.txHash.substring(v.txHash.length - 16)
-    });
-  });
+    })
+  })
   if (assetChainId !== NERVEChainId || assetId !== NERVEAssetId) {
     // not nvt
-    const nvtNonce = await getNonce(from, NERVEChainId, NERVEAssetId);
+    const nvtNonce = await getNonce(from, NERVEChainId, NERVEAssetId)
     inputs.push({
       address: from,
       assetsChainId: NERVEChainId,
@@ -1244,10 +1252,10 @@ async function getBatchJoinTxData(tx) {
       amount: 0,
       locked: 0,
       nonce: nvtNonce
-    });
+    })
   } else {
     // is nvt, combine amount and fee
-    totalAmount = Minus(totalAmount, 100000).toFixed();
+    totalAmount = Minus(totalAmount, 100000).toFixed()
   }
   outputs.push({
     address: from,
@@ -1255,14 +1263,14 @@ async function getBatchJoinTxData(tx) {
     assetsId: assetId,
     amount: totalAmount, // A handling fee of 0.001 is required
     lockTime: -1
-  });
-  return { inputs, outputs, totalAmount };
+  })
+  return { inputs, outputs, totalAmount }
 }
 
 async function getCreateNodeTxData(tx) {
-  const { from, amount } = tx;
-  const { chainId, assetId } = getChainInfo().NERVE;
-  const nonce = await getNonce(from, chainId, assetId);
+  const { from, amount } = tx
+  const { chainId, assetId } = getChainInfo().NERVE
+  const nonce = await getNonce(from, chainId, assetId)
   const inputs = [
     {
       address: from,
@@ -1272,7 +1280,7 @@ async function getCreateNodeTxData(tx) {
       locked: 0,
       nonce
     }
-  ];
+  ]
   const outputs = [
     {
       address: from,
@@ -1281,13 +1289,13 @@ async function getCreateNodeTxData(tx) {
       amount: amount,
       lockTime: -1
     }
-  ];
-  return { inputs, outputs };
+  ]
+  return { inputs, outputs }
 }
 async function getAddDepositTxData(tx) {
-  const { from, amount } = tx;
-  const { chainId, assetId } = getChainInfo().NERVE;
-  const nonce = await getNonce(from, chainId, assetId);
+  const { from, amount } = tx
+  const { chainId, assetId } = getChainInfo().NERVE
+  const nonce = await getNonce(from, chainId, assetId)
   const inputs = [
     {
       address: from,
@@ -1297,7 +1305,7 @@ async function getAddDepositTxData(tx) {
       locked: 0,
       nonce
     }
-  ];
+  ]
   const outputs = [
     {
       address: from,
@@ -1306,20 +1314,18 @@ async function getAddDepositTxData(tx) {
       amount: amount,
       lockTime: -1
     }
-  ];
-  return { inputs, outputs };
+  ]
+  return { inputs, outputs }
 }
 async function getQuitDepositTxData(tx, isStopNode = false) {
-  const { from, amount, reduceList } = tx;
-  const { chainId, assetId } = getChainInfo().NERVE;
-  const fee = 100000;
+  const { from, amount, reduceList } = tx
+  const { chainId, assetId } = getChainInfo().NERVE
+  const fee = 100000
   // lock 15 days
-  const time = new Date().valueOf() + 3600000 * 24 * 15;
-  const lockTime = Number(
-    time.toString().substr(0, time.toString().length - 3)
-  );
-  const inputs = [];
-  const outputs = [];
+  const time = new Date().valueOf() + 3600000 * 24 * 15
+  const lockTime = Number(time.toString().substr(0, time.toString().length - 3))
+  const inputs = []
+  const outputs = []
   for (let item of reduceList) {
     inputs.push({
       address: from,
@@ -1328,7 +1334,7 @@ async function getQuitDepositTxData(tx, isStopNode = false) {
       amount: item.deposit,
       locked: -1,
       nonce: item.nonce
-    });
+    })
   }
 
   outputs.push({
@@ -1337,11 +1343,11 @@ async function getQuitDepositTxData(tx, isStopNode = false) {
     assetsId: assetId,
     amount: Minus(amount, fee).toFixed(), // A handling fee of 0.001 is required
     lockTime: lockTime
-  });
+  })
   if (!isStopNode) {
-    let allAmount = '0';
+    let allAmount = '0'
     for (let item of reduceList) {
-      allAmount = Plus(allAmount, item.deposit).toFixed();
+      allAmount = Plus(allAmount, item.deposit).toFixed()
     }
     if (allAmount !== amount) {
       outputs.push({
@@ -1350,18 +1356,18 @@ async function getQuitDepositTxData(tx, isStopNode = false) {
         assetsId: assetId,
         amount: Minus(allAmount, amount).toFixed(),
         lockTime: -1
-      });
+      })
     }
   }
-  console.log(inputs, outputs, '333');
-  return { inputs, outputs };
+  console.log(inputs, outputs, '333')
+  return { inputs, outputs }
 }
 
 async function getAdditionFeeTxData(tx) {
-  const { from, amount, assetChainId, assetId } = tx;
-  const { chainId: NERVEChainId } = getChainInfo().NERVE;
-  const { feeAddress } = nerveConfig[NERVEChainId];
-  const nonce = await getNonce(from, assetChainId, assetId);
+  const { from, amount, assetChainId, assetId } = tx
+  const { chainId: NERVEChainId } = getChainInfo().NERVE
+  const { feeAddress } = nerveConfig[NERVEChainId]
+  const nonce = await getNonce(from, assetChainId, assetId)
   const inputs = [
     {
       address: from,
@@ -1371,7 +1377,7 @@ async function getAdditionFeeTxData(tx) {
       locked: 0,
       nonce
     }
-  ];
+  ]
   const outputs = [
     {
       address: feeAddress,
@@ -1380,13 +1386,13 @@ async function getAdditionFeeTxData(tx) {
       amount,
       lockTime: 0
     }
-  ];
-  return { inputs, outputs };
+  ]
+  return { inputs, outputs }
 }
 
 async function getTradingOrderTxData(tx) {
-  const { from, amount, assetChainId, assetId } = tx;
-  const nonce = await getNonce(from, assetChainId, assetId);
+  const { from, amount, assetChainId, assetId } = tx
+  const nonce = await getNonce(from, assetChainId, assetId)
   const inputs = [
     {
       address: from,
@@ -1396,7 +1402,7 @@ async function getTradingOrderTxData(tx) {
       locked: 0,
       nonce
     }
-  ];
+  ]
   const outputs = [
     {
       address: from,
@@ -1405,14 +1411,14 @@ async function getTradingOrderTxData(tx) {
       amount,
       lockTime: -2
     }
-  ];
-  return { inputs, outputs };
+  ]
+  return { inputs, outputs }
 }
 
 async function getRevokeOrderTxData(tx) {
-  const { from } = tx;
-  const { chainId, assetId } = getChainInfo().NERVE;
-  const nonce = await getNonce(from, chainId, assetId);
+  const { from } = tx
+  const { chainId, assetId } = getChainInfo().NERVE
+  const nonce = await getNonce(from, chainId, assetId)
   const inputs = [
     {
       address: from,
@@ -1422,7 +1428,7 @@ async function getRevokeOrderTxData(tx) {
       locked: 0,
       nonce
     }
-  ];
+  ]
   const outputs = [
     {
       address: from,
@@ -1431,13 +1437,13 @@ async function getRevokeOrderTxData(tx) {
       amount: '0',
       lockTime: 0
     }
-  ];
-  return { inputs, outputs };
+  ]
+  return { inputs, outputs }
 }
 
 async function getNonce(from, assetChainId, assetId) {
-  const res = await getAssetBalance(assetChainId, assetId, from);
-  return res ? res.nonce : null;
+  const res = await getAssetBalance(assetChainId, assetId, from)
+  return res ? res.nonce : null
 }
 
 export async function sendTx(
@@ -1451,9 +1457,9 @@ export async function sendTx(
   signAddress
 ) {
   // console.log(arguments, '==--=arguments=--==');
-  let signedHex;
-  remark = htmlEncode(remark);
-  const isNULSLedger = checkIsNULSLedger(provider);
+  let signedHex
+  remark = htmlEncode(remark)
+  const isNULSLedger = checkIsNULSLedger(provider)
   if (isNULSLedger) {
     const unsignedHex = await getUnSignHex(
       type,
@@ -1461,8 +1467,8 @@ export async function sendTx(
       outputs,
       remark,
       txData
-    );
-    signedHex = await window.nabox.signNULSTransaction({ txHex: unsignedHex });
+    )
+    signedHex = await window.nabox.signNULSTransaction({ txHex: unsignedHex })
   } else {
     signedHex = await getTxHex({
       provider,
@@ -1473,21 +1479,21 @@ export async function sendTx(
       txData,
       pub,
       signAddress
-    });
+    })
   }
-  return await broadcastHex(signedHex);
+  return await broadcastHex(signedHex)
 }
 
 export async function sendTxWithUnSignedHex(provider, hex, pub, signAddress) {
-  const isNULSLedger = checkIsNULSLedger(provider);
-  let signedHex;
+  const isNULSLedger = checkIsNULSLedger(provider)
+  let signedHex
   if (isNULSLedger) {
-    signedHex = await window.nabox.signNULSTransaction({ txHex: hex });
+    signedHex = await window.nabox.signNULSTransaction({ txHex: hex })
   } else {
-    const tAssemble = nerve.deserializationTx(hex);
-    signedHex = await getTxHex({ provider, tAssemble, pub, signAddress });
+    const tAssemble = nerve.deserializationTx(hex)
+    signedHex = await getTxHex({ provider, tAssemble, pub, signAddress })
   }
-  return await broadcastHex(signedHex);
+  return await broadcastHex(signedHex)
 }
 
 async function getUnSignHex(type, inputs, outputs, remark, txData) {
@@ -1497,8 +1503,8 @@ async function getUnSignHex(type, inputs, outputs, remark, txData) {
     remark,
     type,
     txData
-  );
-  return tAssemble.txSerialize().toString('hex');
+  )
+  return tAssemble.txSerialize().toString('hex')
 }
 
 export async function getTxHex({
@@ -1513,33 +1519,28 @@ export async function getTxHex({
   tAssemble
 }) {
   // let tAssemble = data.tAssemble;
-  let hash;
+  let hash
   if (!tAssemble) {
-    tAssemble = nerve.transactionAssemble(
-      inputs,
-      outputs,
-      remark,
-      type,
-      txData
-    );
+    tAssemble = nerve.transactionAssemble(inputs, outputs, remark, type, txData)
   }
-  hash = '0x' + tAssemble.getHash().toString('hex');
-  const signature = await signHash(provider, hash, signAddress);
-  tAssemble.signatures = nerve.appSplicingPub(signature, pub);
-  return tAssemble.txSerialize().toString('hex');
+  hash = '0x' + tAssemble.getHash().toString('hex')
+  const signature = await signHash(provider, hash, signAddress)
+  tAssemble.signatures = nerve.appSplicingPub(signature, pub)
+  return tAssemble.txSerialize().toString('hex')
 }
 
 async function signHash(provider, hash, signAddress) {
-  hash = hash.startsWith('0x') ? hash : '0x' + hash;
-  let flat = await window[provider].request({
+  hash = hash.startsWith('0x') ? hash : '0x' + hash
+  const _provider = getWebProvider(provider)
+  let flat = await _provider.request({
     method: 'eth_sign',
     params: [signAddress, hash]
-  });
+  })
   // console.log(flat, 66, signAddress)
-  flat = flat.slice(2);
-  const r = flat.slice(0, 64);
-  const s = flat.slice(64, 128);
+  flat = flat.slice(2)
+  const r = flat.slice(0, 64)
+  const s = flat.slice(64, 128)
   // const recoveryParam = flat.slice(128)
   // signature = signature.slice(2)
-  return new Signature({ r, s }).toDER('hex');
+  return new Signature({ r, s }).toDER('hex')
 }

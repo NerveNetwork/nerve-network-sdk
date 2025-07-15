@@ -1,8 +1,10 @@
 import { ethers, BigNumber } from 'ethers';
 import { isBeta } from '../utils/utils';
+import { getWebProvider, checkProvider } from './NERVEApi';
 
 export async function getEVMPub(provider, message) {
-  if (!window[provider]?.selectedAddress) {
+  provider = getWebProvider(provider);
+  if (!provider?.selectedAddress) {
     throw new Error('Pls connect the plugin first');
   }
   const _provider = getProvider(provider);
@@ -38,16 +40,16 @@ const ERC20_ABI = [
   'function approve(address spender, uint256 amount) external returns (bool)'
 ];
 
-function getProvider(walletType, rpcUrl) {
+function getProvider(provider, rpcUrl) {
   if (rpcUrl) {
     return new ethers.providers.JsonRpcProvider(rpcUrl);
   }
-  return new ethers.providers.Web3Provider(window[walletType]);
+  return new ethers.providers.Web3Provider(provider);
 }
 
 /**
  * @param {object} param
- * @param {string} param.provider
+ * @param {string | object} param.provider
  * @param {string} param.tokenContract
  * @param {string} param.multySignContract
  * @param {string} param.address
@@ -60,10 +62,10 @@ export async function checkERC20Allowance({
   address,
   amount
 }) {
-  if (!window[provider]) {
-    throw new Error(`${provider} not found`);
-  }
+  checkProvider(provider);
+  provider = getWebProvider(provider);
   const _provider = getProvider(provider);
+
   const contract = new ethers.Contract(tokenContract, ERC20_ABI, _provider);
   const allowancePromise = contract.allowance(address, multySignContract);
   return allowancePromise
@@ -83,7 +85,7 @@ export async function checkERC20Allowance({
 
 /**
  *
- * @param {string} provider
+ * @param {string | object} provider
  * @param {string} tokenContract
  * @param {string} multySignContract
  * @param {string} address
@@ -95,9 +97,8 @@ export async function approveERC20({
   multySignContract,
   address
 }) {
-  if (!window[provider]) {
-    throw new Error(`${provider} not found`);
-  }
+  checkProvider(provider);
+  provider = getWebProvider(provider);
   if (!tokenContract || !multySignContract || !address) {
     throw new Error('Invalid params');
   }
@@ -121,7 +122,7 @@ export async function approveERC20({
   };
   const KlaytnNativeId = getKlaytnNativeId();
   if (_provider.provider?.chainId === KlaytnNativeId) {
-    // Klaytn set default gas
+    // KAIA set default gas
     txData.gasPrice = '0x3a35294400';
   }
   await validateTx(_provider, txData);
@@ -147,9 +148,9 @@ export async function EVMCrossToNERVE({
   gasPrice,
   gasLimit
 }) {
-  if (!window[provider]) {
-    throw new Error(`${provider} not found`);
-  }
+  checkProvider(provider);
+  provider = getWebProvider(provider);
+
   if (!multySignContract || !nerveAddress || !from) {
     throw new Error('Invalid params');
   }
@@ -192,7 +193,7 @@ export async function EVMCrossToNERVE({
   }
   const KlaytnNativeId = getKlaytnNativeId();
   if (_provider.provider?.chainId === KlaytnNativeId) {
-    // Klaytn set default gas
+    // KAIA set default gas
     txData.gasPrice = '0x3a35294400';
   }
   await validateTx(_provider, txData);

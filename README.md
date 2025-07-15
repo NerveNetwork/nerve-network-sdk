@@ -52,7 +52,7 @@ nerveswap.evm.crossIn({
  * @param {string} param.provider the wallet collected to the dapp, ex: ethereum/NaboxWallet
  * @param {string} param.address the collected address
  * @param {string} [param.message] the sign message, default is Generate Multi-chain Address
- * @returns {Promise<{address: { NERVE: string, NULS: string, EVM: string, TRON: string }, pub: string}>}
+ * @returns {Promise<{address: { NERVE: string, NULS: string, EVM: string, TRON: string, BTC: string, FCH: string, BCH: string, TBC: string }, pub: string}>}
  */
 nerveswap.getAccount(param)
 ```
@@ -309,4 +309,65 @@ nerveswap.farm.claim(param)
  * @returns {Promise<{hash: string} | {error: {code: number, message: string}}>}
  */
 nerveswap.farm.withdrawal(param)
+```
+
+## bitcoin
+
+### Cross to NERVE
+```js
+/**
+ * @param {object} param
+ * @param {object} param.provider
+ * @param {string} param.from
+ * @param {string} param.multySignAddress NERVE Bitcoin multy sign address
+ * @param {string} param.nerveAddress nerve target address
+ * @param {string} param.amount
+ * @param {string} param.pub
+ * @param {boolean} [param.isMainnet]
+ */
+nerveswap.btc.crossIn(param)
+```
+
+## FreeCash Coin
+
+### Cross to NERVE
+```js
+/**
+ * @param {object} data
+ * @param {string} data.multySignAddress NERVE FCH multy sign address
+ * @param {string} data.nerveAddress  nerve target address
+ * @param {string} data.amount  transfer amount
+ * @returns {Promise<string>}
+ */
+nerveswap.fch.crossIn(param)
+```
+
+## Bitcoin Cash
+
+### Cross to NERVE
+```js
+/**
+ * @param {object} data
+ * @param {string} data.multySignAddress NERVE BCH multy sign address
+ * @param {string} data.nerveAddress  nerve target address
+ * @param {string} data.amount  transfer amount
+ * @returns {Promise<string>}
+ */
+nerveswap.bch.crossIn(param)
+```
+
+## Turingbit Chain
+
+### Cross to NERVE
+```js
+/**
+ * @param {object} data
+ * @param {string} data.multySignAddress NERVE TBC multy sign address
+ * @param {string} data.nerveAddress  nerve target address
+ * @param {string} data.amount  transfer amount, TBC(with decimals), token(without decimals )
+ * @param {string?} data.tokenContract  token contract
+ * @param {number} data.decimals  token decimals
+ * @returns {Promise<string>}
+ */
+nerveswap.tbc.crossIn(param)
 ```

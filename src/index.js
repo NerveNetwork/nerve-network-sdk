@@ -8,7 +8,11 @@ import {
   BitCoinCrossToNERVE,
   checkBTCTxConfirmed,
   calBTCTxFee,
-  getBTCAddressByPub
+  getBTCAddressByPub,
+  getBTCWithdrawalInfo,
+  getBTCWithdrawalFee,
+  getBTCSpeedUpAmount,
+  checkBTCAddress
 } from './api/bitcoin';
 
 import {
@@ -22,6 +26,31 @@ import {
   approveTRC20,
   TRONCrossToNERVE
 } from './api/TRONApi';
+
+import {
+  calFCHTxFee,
+  FCHCrossToNERVE,
+  validateFCHAddres,
+  getFCHWithdrawInfo,
+  getFCHWithdrawalFee
+} from './api/FCHApi';
+
+import {
+  BCH_PREFIX,
+  calBCHTxFee,
+  BCHCrossToNERVE,
+  validateBCHAddres,
+  getBCHTransactionDetail,
+  getBCHWithdrawInfo,
+  getBCHWithdrawalFee
+} from './api/BCHApi';
+
+import {
+  handleGetTBCBalance,
+  getTBCTransactionFee,
+  TBCCrossToNERVE,
+  getTBCTransactionByHash
+} from './api/TBCApi';
 
 import {
   sendNERVETx,
@@ -73,12 +102,6 @@ export { getChainInfo } from './utils/utils';
 const nerve = {
   getAccount: generateAddress,
   getAccountByPub,
-  btc: {
-    getAddress: getBTCAddressByPub,
-    calTxFee: calBTCTxFee,
-    crossIn: BitCoinCrossToNERVE,
-    checkTxConfirmed: checkBTCTxConfirmed
-  },
   evm: {
     checkAuth: checkERC20Allowance,
     approve: approveERC20,
@@ -88,6 +111,41 @@ const nerve = {
     checkAuth: checkTRC20Allowance,
     approve: approveTRC20,
     crossIn: TRONCrossToNERVE
+  },
+  btc: {
+    getAddress: getBTCAddressByPub,
+    calTxFee: calBTCTxFee,
+    crossIn: BitCoinCrossToNERVE,
+    checkTxConfirmed: checkBTCTxConfirmed,
+    getBTCWithdrawalInfo,
+    getWithdrawInfo: getBTCWithdrawalInfo,
+    getWithdrawalFee: getBTCWithdrawalFee,
+    getBTCWithdrawalFee,
+    getBTCSpeedUpAmount,
+    checkBTCAddress,
+    validateAddress: checkBTCAddress
+  },
+  fch: {
+    calTxFee: calFCHTxFee,
+    crossIn: FCHCrossToNERVE,
+    validateAddress: validateFCHAddres,
+    getWithdrawInfo: getFCHWithdrawInfo,
+    getWithdrawalFee: getFCHWithdrawalFee
+  },
+  bch: {
+    addressPrefix: BCH_PREFIX,
+    calTxFee: calBCHTxFee,
+    crossIn: BCHCrossToNERVE,
+    validateAddress: validateBCHAddres,
+    getTx: getBCHTransactionDetail,
+    getWithdrawInfo: getBCHWithdrawInfo,
+    getWithdrawalFee: getBCHWithdrawalFee
+  },
+  tbc: {
+    getBalance: handleGetTBCBalance,
+    calTxFee: getTBCTransactionFee,
+    crossIn: TBCCrossToNERVE,
+    getTx: getTBCTransactionByHash
   },
   transfer: {
     transfer: sendNERVETx,

@@ -105,3 +105,17 @@ export async function getCrossChainInfo() {
   }
   return res.result;
 }
+
+export async function getSplitGranularity(hid) {
+  const res = await post('getSplitGranularity', [hid], true);
+  return res.result?.value || 0;
+}
+
+export async function getUtxoCheckedInfo(hid, uxtos) {
+  const res = await post('getUtxoCheckedInfo', [hid, uxtos], true);
+  if (!res.result || !res.result.value || !res.result.value.length) {
+    throw new Error('Fail to filter utxos');
+  }
+  const result = res.result.value.filter(v => !v.locked)
+  return result;
+}

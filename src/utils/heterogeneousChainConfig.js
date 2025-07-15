@@ -4,16 +4,16 @@ export function getHetergenousChainConfig() {
   const RPC_URL = {
     Ethereum: isBeta
       ? 'https://ethereum-goerli.publicnode.com'
-      : 'https://eth.drpc.org',
+      : 'https://ethereum.publicnode.com',
     BSC: isBeta
       ? 'https://data-seed-prebsc-1-s1.binance.org:8545/'
       : 'https://bsc-dataseed.binance.org/',
     Polygon: isBeta
       ? 'https://polygon-testnet.public.blastapi.io'
       : 'https://polygon-rpc.com',
-    Heco: isBeta
-      ? 'https://http-testnet.hecochain.com'
-      : 'https://http-mainnet.hecochain.com',
+    // Heco: isBeta
+    //   ? 'https://http-testnet.hecochain.com'
+    //   : 'https://http-mainnet.hecochain.com',
     OKTC: isBeta
       ? 'https://exchaintestrpc.okex.org'
       : 'https://exchainrpc.okex.org',
@@ -42,7 +42,7 @@ export function getHetergenousChainConfig() {
     Optimism: isBeta
       ? 'https://kovan.optimism.io'
       : 'https://optimism-mainnet.public.blastapi.io',
-    Klaytn: isBeta
+    KAIA: isBeta
       ? 'https://api.baobab.klaytn.net:8651'
       : 'https://public-node-api.klaytnapi.com/v1/cypress',
     smartBCH: isBeta ? 'https://moeing.tech:9545' : 'https://smartbch.greyh.at',
@@ -122,21 +122,21 @@ export function getHetergenousChainConfig() {
       chainName: isBeta ? 'Polygon_Beta' : 'Polygon',
       chainId: 106,
       assetKey: isBeta ? '5-34' : '9-160',
-      mainAsset: 'MATIC',
+      mainAsset: 'POL',
       nativeId: isBeta ? '0x13881' : '0x89',
       decimals: 18,
       rpcUrl: RPC_URL.Polygon
     },
-    Heco: {
-      name: 'Heco',
-      chainName: isBeta ? 'Heco_Beta' : 'Heco',
-      chainId: 103,
-      assetKey: isBeta ? '5-9' : '9-55',
-      mainAsset: 'HT',
-      nativeId: isBeta ? '0x100' : '0x80',
-      decimals: 18,
-      rpcUrl: RPC_URL.Heco
-    },
+    // Heco: {
+    //   name: 'Heco',
+    //   chainName: isBeta ? 'Heco_Beta' : 'Heco',
+    //   chainId: 103,
+    //   assetKey: isBeta ? '5-9' : '9-55',
+    //   mainAsset: 'HT',
+    //   nativeId: isBeta ? '0x100' : '0x80',
+    //   decimals: 18,
+    //   rpcUrl: RPC_URL.Heco
+    // },
     OKTC: {
       name: 'OKTC',
       chainName: isBeta ? 'OKC_Beta' : 'OKTC',
@@ -246,15 +246,15 @@ export function getHetergenousChainConfig() {
       decimals: 18,
       rpcUrl: RPC_URL.Optimism
     },
-    Klaytn: {
-      name: 'Klaytn',
-      chainName: isBeta ? 'Klaytn_Beta' : 'Klaytn',
+    KAIA: {
+      name: 'KAIA',
+      chainName: isBeta ? 'KAIA_Beta' : 'KAIA',
       chainId: 116,
       assetKey: isBeta ? '5-118' : '9-448',
       mainAsset: 'KLAY',
       nativeId: isBeta ? '0x3e9' : '0x2019',
       decimals: 18,
-      rpcUrl: RPC_URL.Klaytn
+      rpcUrl: RPC_URL.KAIA
     },
     smartBCH: {
       name: 'smartBCH',

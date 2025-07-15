@@ -48,3 +48,32 @@ export function sPost(path, params = {}) {
     );
   });
 }
+
+export function callOKLinkApi(method, api, params) {
+  const url = 'https://api.v2.nabox.io/nabox-api/ok/link/api/call'
+  return new Promise((resolve, reject) => {
+    // const params = {
+    //   "method": "get",
+    //   "api": "/api/v5/explorer/address/utxo",
+    //   "params": {
+    //     "chainShortName": "BCH",
+    //     "address": "qpat0x74cqp4fe757dr8fxkh6tql3whqxyxrmshfn6",
+    //     "page": 1,
+    //     "limit": 100
+    //   }
+    // }
+    const data = {
+      method,
+      api,
+      params
+    }
+    axios({url, method: 'post', data }).then(
+      response => {
+        resolve(response.data);
+      },
+      err => {
+        reject(err);
+      }
+    );
+  });
+}

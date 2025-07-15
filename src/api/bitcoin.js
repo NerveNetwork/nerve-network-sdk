@@ -3,11 +3,12 @@ const {
   BitcoinRechargeData
 } = require('nerve-sdk-js/lib/model/BitcoinRechargeData');
 import { isBeta } from '../utils/utils';
+import { getUtxoCheckedInfo } from '../service/api';
 
 nerve.bitcoin.initEccLibForWeb();
 
-export async function getBTCPub() {
-  return await window.unisat.getPublicKey();
+export async function getBTCPub(provider) {
+  return await provider.getPublicKey();
 }
 
 export function getBTCAddressByPub(pub) {
@@ -54,6 +55,7 @@ export async function calBTCTxFee({
 
 /**
  * @param {object} param
+ * @param {object} param.provider
  * @param {string} param.from
  * @param {string} param.multySignAddress
  * @param {string} param.nerveAddress
@@ -62,6 +64,7 @@ export async function calBTCTxFee({
  * @param {boolean} [param.isMainnet]
  */
 export async function BitCoinCrossToNERVE({
+  provider,
   from,
   multySignAddress,
   nerveAddress,
@@ -69,7 +72,7 @@ export async function BitCoinCrossToNERVE({
   pub,
   isMainnet = true
 }) {
-  if (!window.unisat) {
+  if (!provider) {
     throw new Error('Please install the wallet first');
   }
   amount = Number(amount);
@@ -126,12 +129,12 @@ export async function BitCoinCrossToNERVE({
   } else {
     throw new Error('Invalid Address');
   }
-  return await sendTransaction(psbtHex);
+  return await sendTransaction(provider, psbtHex);
 }
 
-async function sendTransaction(psbtHex) {
-  const signResult = await window.unisat.signPsbt(psbtHex);
-  return await window.unisat.pushPsbt(signResult);
+async function sendTransaction(provider, psbtHex) {
+  const signResult = await provider.signPsbt(psbtHex);
+  return await provider.pushPsbt(signResult);
 }
 
 export async function getBTCTxDetail(txid, isMainnet) {
@@ -148,4 +151,39 @@ export async function checkBTCTxConfirmed(txid, isMainnet) {
     //
   }
   return false;
+}
+
+export async function getBTCWithdrawalInfo(isMainnet, multySignAddress) {
+  let utxos = await nerve.bitcoin.getUtxos(isMainnet, multySignAddress);
+  if (Array.isArray(utxos)) {
+    utxos.sort((a, b) => {
+      if (a.value !== b.value) {
+        return a.value < b.value ? -1 : 1;
+      } else {
+        return a.txid < b.txid ? -1 : 1;
+      }
+    });
+  }
+  const filteredUtxo = await getUtxoCheckedInfo(201, utxos)
+  const feeRate = await nerve.bitcoin.getFeeRate(isMainnet);
+  return { utxos: filteredUtxo, feeRate };
+}
+
+export function getBTCWithdrawalFee(utxos, feeRate, amount) {
+  const fee = nerve.bitcoin.calcFeeWithdrawal(utxos, amount, feeRate);
+  return Math.ceil(fee);
+}
+
+export async function getBTCSpeedUpAmount(isMainnet, utxoSize, feeRateOnTx) {
+  const feeRateOnNetwork = await nerve.bitcoin.getFeeRate(isMainnet);
+  const txSize = nerve.bitcoin.calcTxSizeWithdrawal(utxoSize);
+  if (feeRateOnNetwork - feeRateOnTx > 0) {
+    const needAddFee = txSize * (feeRateOnNetwork - feeRateOnTx);
+    return needAddFee;
+  }
+  return false;
+}
+
+export function checkBTCAddress(isMainnet, address) {
+  return nerve.bitcoin.isValidBTCAddress(isMainnet, address);
 }

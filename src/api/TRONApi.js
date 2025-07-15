@@ -1,6 +1,7 @@
 import TronWeb from 'tronweb';
 import { ethers } from 'ethers';
 import { Minus, isBeta } from '../utils/utils';
+import { getWebProvider } from './NERVEApi';
 
 const TRC20_ALLOWANCE_ABI = [
   {
@@ -30,8 +31,8 @@ const TRC20_ALLOWANCE_ABI = [
   return tronWeb
 } */
 
-export async function getTRONPub(message) {
-  const tronWeb = window.tronWeb;
+export async function getTRONPub(provider, message) {
+  const tronWeb = provider;
   if (!tronWeb?.defaultAddress?.base58) {
     throw new Error('Pls connect the plugin first');
   }
@@ -77,17 +78,19 @@ export function getTRONAddressByPub(pub) {
 
 /**
  * @param {object} param
+ * @param {object} param.provider
  * @param {string} param.address
  * @param {string} param.multySignContract
  * @param {number} param.tokenContract
  * @returns {Promise<boolean}>}
  */
 export async function checkTRC20Allowance({
+  provider,
   address,
   tokenContract,
   multySignContract
 }) {
-  const tronWeb = window.tronWeb;
+  const tronWeb = provider;
   const instance = await tronWeb.contract(TRC20_ALLOWANCE_ABI, tokenContract);
   const allowance = await instance.allowance(address, multySignContract).call();
   const baseAllowance = '39600000000000000000000000000';
@@ -96,15 +99,20 @@ export async function checkTRC20Allowance({
 
 /**
  * @param {object} param
+ * @param {object} param.provider
  * @param {string} param.multySignContract
  * @param {number} param.tokenContract
  * @returns {Promise<{hash: string}}>}
  */
-export async function approveTRC20({ tokenContract, multySignContract }) {
-  const tronWeb = window.tronWeb;
+export async function approveTRC20({
+  provider,
+  tokenContract,
+  multySignContract
+}) {
+  const tronWeb = provider;
   if (
-    !validAddress(multySignContract) ||
-    (tokenContract && !validAddress(tokenContract))
+    !validAddress(provider, multySignContract) ||
+    (tokenContract && !validAddress(provider, tokenContract))
   ) {
     throw new Error('Invalid address');
   }
@@ -123,12 +131,13 @@ export async function approveTRC20({ tokenContract, multySignContract }) {
   return { hash };
 }
 
-function validAddress(address) {
-  return window.tronWeb.isAddress(address);
+function validAddress(provider, address) {
+  return provider.isAddress(address);
 }
 
 /**
  * @param {object} param
+ * @param {object} param.provider
  * @param {string} param.to nerve address
  * @param {string} param.amount
  * @param {string} param.multySignContract
@@ -136,18 +145,19 @@ function validAddress(address) {
  * @returns {Promise<{hash: string}}>}
  */
 export async function TRONCrossToNERVE({
+  provider,
   to,
   amount,
   multySignContract,
   tokenContract
 }) {
   if (
-    !validAddress(multySignContract) ||
-    (tokenContract && !validAddress(tokenContract))
+    !validAddress(provider, multySignContract) ||
+    (tokenContract && !validAddress(provider, tokenContract))
   ) {
     throw new Error('Invalid address');
   }
-  const tronWeb = window.tronWeb;
+  const tronWeb = provider;
   const contract =
     tokenContract || '0x0000000000000000000000000000000000000000';
   const instance = await tronWeb.contract().at(multySignContract);
